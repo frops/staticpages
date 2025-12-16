@@ -9,6 +9,13 @@ const lessons = [
     level: 'Начальный',
     duration: '45 мин',
   },
+  {
+    path: '/greek/3',
+    title: 'Греческий язык · Уроки 3',
+    summary: 'Работа, профессии, притяжательные местоимения.',
+    level: 'Начальный',
+    duration: '45 мин',
+  },
 ];
 
 const Home = () => (
