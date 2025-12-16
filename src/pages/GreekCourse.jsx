@@ -2142,4 +2142,3 @@ const GreekCourse = () => {
 };
 
 export default GreekCourse;
-export default GreekCourse;
