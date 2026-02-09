@@ -5,6 +5,7 @@ import Home from './pages/Home.jsx';
 // Сценарии подключаются лениво, чтобы каждая страница оставалась независимой.
 const GreekCourse = lazy(() => import('./pages/GreekCourse.jsx'));
 const GreekCourse3 = lazy(() => import('./pages/GreekCourse3.jsx'));
+const ConditionalSentences = lazy(() => import('./pages/ConditionalSentences.jsx'));
 
 const AppRouter = () => (
   <BrowserRouter>
@@ -13,6 +14,7 @@ const AppRouter = () => (
         <Route path="/" element={<Home />} />
         <Route path="/greek/1-2" element={<GreekCourse />} />
         <Route path="/greek/3" element={<GreekCourse3 />} />
+        <Route path="/english/conditionals" element={<ConditionalSentences />} />
       </Routes>
     </Suspense>
   </BrowserRouter>

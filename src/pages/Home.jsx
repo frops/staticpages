@@ -16,6 +16,13 @@ const lessons = [
     level: 'Начальный',
     duration: '45 мин',
   },
+  {
+    path: '/english/conditionals',
+    title: 'English · Conditional Sentences',
+    summary: 'Zero, First и Second Conditional — теория и квиз из 15 вопросов.',
+    level: 'Средний',
+    duration: '20 мин',
+  },
 ];
 
 const Home = () => (
