@@ -110,9 +110,29 @@ const ConditionalSentences = () => {
       }
     ];
 
-    let score = 0;
-    let answered = 0;
-    let stats = { zero: 0, first: 0, second: 0 };
+    const STORAGE_KEY = 'cond_quiz_progress';
+
+    // --- localStorage helpers ---
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return null;
+    }
+    function saveProgress(data) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (_) {}
+    }
+    function clearProgress() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+    }
+
+    const saved = loadProgress();
+    // answers: { [questionIndex]: chosenOptionIndex }
+    let answers = saved ? saved.answers : {};
+    let score = saved ? saved.score : 0;
+    let answered = saved ? saved.answered : 0;
+    let stats = saved ? saved.stats : { zero: 0, first: 0, second: 0 };
     const container = document.getElementById('questionsContainer');
 
     function buildQuiz() {
@@ -141,14 +161,55 @@ const ConditionalSentences = () => {
         `;
         container.appendChild(card);
 
-        card.querySelectorAll('.option-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            selectAnswer(i, parseInt(btn.getAttribute('data-o')));
+        // Restore previously answered question
+        if (answers[i] !== undefined) {
+          restoreAnswer(card, q, i, answers[i]);
+        } else {
+          card.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              selectAnswer(i, parseInt(btn.getAttribute('data-o')));
+            });
           });
-        });
+        }
 
         setTimeout(() => card.classList.add('visible'), 100 + i * 80);
       });
+
+      // Restore UI counters
+      updateUI();
+
+      // If all answered, show results immediately
+      if (answered === 15) {
+        setTimeout(showResults, 400);
+      }
+    }
+
+    function restoreAnswer(card, q, qi, oi) {
+      const btns = card.querySelectorAll('.option-btn');
+      btns.forEach(b => b.classList.add('disabled'));
+
+      if (oi === q.correct) {
+        btns[oi].classList.add('selected-correct');
+        card.classList.add('answered-correct');
+      } else {
+        btns[oi].classList.add('selected-wrong');
+        btns[q.correct].classList.add('reveal-correct');
+        card.classList.add('answered-wrong');
+      }
+
+      const qtypeEl = document.getElementById(`qtype${qi}`);
+      if (qtypeEl) qtypeEl.classList.add('show');
+      const explEl = document.getElementById(`expl${qi}`);
+      if (explEl) explEl.classList.add('show');
+    }
+
+    function updateUI() {
+      const currentQEl = document.getElementById('currentQ');
+      if (currentQEl) currentQEl.textContent = answered;
+      const scoreNumEl = document.getElementById('scoreNum');
+      if (scoreNumEl) scoreNumEl.textContent = score;
+      const progressFillEl = document.getElementById('progressFill');
+      if (progressFillEl) progressFillEl.style.width = `${(answered / 15) * 100}%`;
     }
 
     function selectAnswer(qi, oi) {
@@ -178,12 +239,9 @@ const ConditionalSentences = () => {
       if (explEl) explEl.classList.add('show');
 
       answered++;
-      const currentQEl = document.getElementById('currentQ');
-      if (currentQEl) currentQEl.textContent = answered;
-      const scoreNumEl = document.getElementById('scoreNum');
-      if (scoreNumEl) scoreNumEl.textContent = score;
-      const progressFillEl = document.getElementById('progressFill');
-      if (progressFillEl) progressFillEl.style.width = `${(answered / 15) * 100}%`;
+      answers[qi] = oi;
+      updateUI();
+      saveProgress({ answers, score, answered, stats });
 
       if (answered === 15) {
         setTimeout(showResults, 800);
@@ -219,13 +277,10 @@ const ConditionalSentences = () => {
     window._conditionalRestart = function() {
       score = 0;
       answered = 0;
+      answers = {};
       stats = { zero: 0, first: 0, second: 0 };
-      const currentQEl = document.getElementById('currentQ');
-      if (currentQEl) currentQEl.textContent = '0';
-      const scoreNumEl = document.getElementById('scoreNum');
-      if (scoreNumEl) scoreNumEl.textContent = '0';
-      const progressFillEl = document.getElementById('progressFill');
-      if (progressFillEl) progressFillEl.style.width = '0%';
+      clearProgress();
+      updateUI();
       const resultsEl = document.getElementById('results');
       if (resultsEl) resultsEl.classList.remove('show');
       buildQuiz();
